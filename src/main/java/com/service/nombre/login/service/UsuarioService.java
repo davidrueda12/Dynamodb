@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface UsuarioService {
 
     ResponseEntity<?> byUsername(UsuarioLoginDTO username);
-    ResponseEntity<Usuario> saveUser(UsuarioDTO usuarioDTO);
+    ResponseEntity<?> saveUser(UsuarioDTO usuarioDTO);
+    ResponseEntity<Usuario> patchUser(UsuarioDTO usuarioDTO);
+    ResponseEntity<String> deleteUser(UsuarioLoginDTO usuarioDTO);
 
 }

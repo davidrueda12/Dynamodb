@@ -1,5 +1,6 @@
 package com.service.nombre.login.service;
 
+import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.service.nombre.login.client.MapperUsuario;
 import com.service.nombre.login.models.UsuarioDTO;
 import com.service.nombre.login.models.UsuarioLoginDTO;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public class UsuarioServiceImpl implements UsuarioService{
 
     private UsuarioRepository usuarioRepository;
+    MapperUsuario mapperUsuario = new MapperUsuario();
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository){
         this.usuarioRepository = usuarioRepository;
@@ -42,10 +44,53 @@ public class UsuarioServiceImpl implements UsuarioService{
     }
 
     @Override
-    public ResponseEntity<Usuario> saveUser(UsuarioDTO usuarioDTO) {
-        MapperUsuario mapperUsuario = new MapperUsuario();
+    public ResponseEntity<?> saveUser(UsuarioDTO usuarioDTO) {
+        log.info("Guardando el usuario: "+usuarioDTO.getUsername());
+
+        Optional<Usuario> user = usuarioRepository.findByUsername(usuarioDTO.getUsername());
+        Optional<Usuario> userEmail = usuarioRepository.findByEmail(usuarioDTO.getEmail());
+        Optional<Usuario> userTelefono = usuarioRepository.findByTelefono(usuarioDTO.getTelefono());
+
+        if (user.isPresent()){
+            log.info("El usuario "+usuarioDTO.getUsername()+" ya esta registrado");
+            return new ResponseEntity<>("El usuario "+usuarioDTO.getUsername()+" ya esta registrado",HttpStatus.OK);
+        }
+        if(userEmail.isPresent()){
+            log.info("El email "+usuarioDTO.getEmail()+" ya esta registrado");
+            return new ResponseEntity<>("El email "+usuarioDTO.getEmail()+" ya esta registrado",HttpStatus.OK);
+        }
+        if(userTelefono.isPresent()){
+            log.info("El telefono "+usuarioDTO.getTelefono()+" ya esta registrado");
+            return new ResponseEntity<>("El telefono "+usuarioDTO.getTelefono()+" ya esta registrado",HttpStatus.OK);
+        }
+
         Usuario usuario = mapperUsuario.toUsuario(usuarioDTO);
         usuarioRepository.save(usuario);
         return new ResponseEntity<>(usuario,HttpStatus.CREATED);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<Usuario> patchUser(UsuarioDTO usuarioDTO) {
+        log.info("Modificando el usuario: "+usuarioDTO.getUsername());
+        Usuario user = usuarioRepository.findByUsername(usuarioDTO.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontro le usuario: "+ usuarioDTO.getUsername()));
+        Usuario userPatch = mapperUsuario.toPatchUsuario(usuarioDTO, user);
+        usuarioRepository.save(userPatch);
+        return new ResponseEntity<>(user,HttpStatus.CREATED);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<String> deleteUser(UsuarioLoginDTO usuarioDTO) {
+        log.info("Eliminando el usuario: "+usuarioDTO.getUsername());
+        Usuario user = usuarioRepository.findByUsername(usuarioDTO.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontro le usuario: "+ usuarioDTO.getUsername()));
+        if(!usuarioDTO.getPassword().equals(user.getPassword())){
+            log.info("contraseña incorrecta");
+            return new ResponseEntity<>("CONTRASEÑA INCORRECTA",HttpStatus.FORBIDDEN);
+        }
+        usuarioRepository.delete(user);
+        return new ResponseEntity<>("Se a eliminado el usuario: "+user.getUsername(),HttpStatus.OK);
     }
 }

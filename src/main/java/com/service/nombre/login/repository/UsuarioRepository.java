@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface UsuarioRepository extends CrudRepository<Usuario, String> {
 
     Optional<Usuario> findByUsername(String username);
+    Optional<Usuario> findByEmail(String email);
+    Optional<Usuario> findByTelefono(String telefono);
 }
