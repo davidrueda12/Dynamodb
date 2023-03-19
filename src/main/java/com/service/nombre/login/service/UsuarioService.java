@@ -5,8 +5,6 @@ import com.service.nombre.login.models.UsuarioLoginDTO;
 import com.service.nombre.login.models.entity.Usuario;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Optional;
-
 public interface UsuarioService {
 
     ResponseEntity<?> byUsername(UsuarioLoginDTO username);

@@ -21,7 +21,8 @@ public class UsuarioController {
         this.usuarioService=usuarioService;
     }
 
-    @PostMapping(value = "/conectar",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins = "*")
+    @PostMapping(value = "/conectar",consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> encontrar(@Valid @RequestBody UsuarioLoginDTO usuarioDTO){
         log.info("se esta ejecutando un login");
         return usuarioService.byUsername(usuarioDTO);
